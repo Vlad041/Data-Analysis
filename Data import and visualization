@@ -1,0 +1,33 @@
+import yfinance as yf
+from datetime import datetime
+from bokeh.plotting import figure, show, output_file
+import pandas as pd
+from math import pi
+
+start = datetime(2020, 2, 1)
+end = datetime(2020, 7, 15)  # year, month, day
+
+data = yf.download('SBER.ME', start, end)
+print(data.head())
+print(data.tail())
+
+w = 12*60*60*1000  # half day in ms
+data.index = pd.to_datetime(data.index)
+
+inc = data.Close > data.Open
+dec = data.Open > data.Close
+
+TOOLS = "pan,wheel_zoom,box_zoom,reset,save"
+
+p = figure(x_axis_type="datetime", tools=TOOLS, plot_width=1000, title="Sber MOEX")
+p.xaxis.major_label_orientation = pi/4
+p.grid.grid_line_alpha = 1  # How transparent is the grid from 0 to 1
+
+p.segment(data.index, data.High, data.index, data.Low, color="black")
+
+p.vbar(data.index[inc], w, data.Open[inc], data.Close[inc], fill_color="#208032", line_color="#208032")
+p.vbar(data.index[dec], w, data.Open[dec], data.Close[dec], fill_color="#e63c3c", line_color="#e63c3c")
+
+output_file("candlestick.html", title="Sber")
+
+show(p) # The graph will open in another tab of the browser
